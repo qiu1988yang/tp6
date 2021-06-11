@@ -22,7 +22,17 @@
     "require": {
         "php": ">=7.1.0",
         "topthink/framework": "^6.0.0",
-        "topthink/think-orm": "^2.0"
+        "topthink/think-orm": "^2.0",
+        "topthink/think-migration": "^3.0",
+        "topthink/think-multi-app": "^1.0",
+        "topthink/think-view": "^1.0",
+        "topthink/think-queue": "^3.0",
+        "guzzlehttp/guzzle": "^7.2",
+        "liliuwei/thinkphp-jump": "^1.5",
+        "phpoffice/phpspreadsheet": "^1.15",
+        "smalot/pdfparser": "^0.18.1",
+        "thans/tp-jwt-auth": "^1.1",
+        "aliyuncs/oss-sdk-php": "^2.4"
     },
     "require-dev": {
         "symfony/var-dumper": "^4.2",
