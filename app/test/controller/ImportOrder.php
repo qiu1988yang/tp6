@@ -85,9 +85,9 @@ class ImportOrder
                     $info2['fare_no'] = $val3[$info['fare_no']];
                     $info2['customer'] = $val3[$info['customer']];
                     $info2['addressee'] = $val3[$info['addressee']];
-                    $info2['addressee_phone'] = str_replace("'", '',  $val3[$info['addressee_phone']]);
+                    $info2['addressee_phone'] = str_replace("'", '', $val3[$info['addressee_phone']]);
                     $info2['address'] = $val3[$info['address']];
-                    $info2['total_price'] =(int)($val3[$info['total_price']] * 100);
+                    $info2['total_price'] = (int)($val3[$info['total_price']] * 100);
                     $info2['total_num'] = $val3[$info['total_num']];
                     $info2['create_time'] = $val3[$info['create_time']];
                     $info2['pay_time'] = $val3[$info['pay_time']];
@@ -97,15 +97,15 @@ class ImportOrder
                     $des2['sku'] = $val3[$des['sku']] ? mb_substr($val3[$des['sku']], 0, 100, 'utf-8') : "";
                     $des2['goods'] = $val3[$des['goods']] ? mb_substr($val3[$des['goods']], 0, 100, 'utf-8') : "";
                     $des2['num'] = $val3[$des['num']];
-                    $des2['price'] = (int)($val3[$des['price']]*100);
+                    $des2['price'] = (int)($val3[$des['price']] * 100);
                     $des2['sys_create_time'] = date("Y-m-d H:i:s");
-                   
+
 
                     //查看有没有重复项
                     if (isset($des2['order_no'])) {
                         if (in_array($des2['order_no'], $res)) {
                             dump($des2['order_no']);
-                            unset($des2);  //有：销毁
+                            $desOrderList[] = $des2;
                             unset($info2);  //有：销毁
                         } else {
                             $res[] = $des2['order_no'];
@@ -116,27 +116,9 @@ class ImportOrder
                 }
 
             }
-           (new WsaleOrderModel())->insertAll($orderList);
-           (new WsaleOrderDetailModel())->insertAll($desOrderList);
+            (new WsaleOrderModel())->insertAll($orderList);
+            (new WsaleOrderDetailModel())->insertAll($desOrderList);
             exit;
-
-            //exit;
-            //exit;
-            /* foreach ($t as $key2=>$val2){
-
-               $l =  ( $this->t_w_sale_order())[$val2] ?? "";
-               dump($l.'----');
-
-
-             }
-             //处理前面的顺序
-
-
-             //出入插入的值
-             dump($t);
-             exit;*/
-
-
         }
 
     }
