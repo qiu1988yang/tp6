@@ -30,18 +30,23 @@ class ImportOrder
 
     public function index()
     {
-        $path = 'E:\订单报表';
+        $path = 'E:\5.27~6.7\备份';
         $result = $this->scanFile($path);
 
         foreach ($result as $key => $val) {
+            dump($val);
             $route = $path . '/' . $val;
             $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($route);
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+
+            file_put_contents("sites.txt", "$val" . "---" . count($sheetData), FILE_APPEND);
             $t = [];
             foreach ($sheetData[1] as $key2 => $val2) {
-                $t[$key2] = trim($val2);
+                if($val2){
+                    $t[$key2] = trim($val2);
+                }
             }
-
             //订单
             $info['brand'] = array_search('店铺名称', $t);
             $info['shop_name'] = array_search('店铺名称', $t);
@@ -67,7 +72,6 @@ class ImportOrder
             $des['num'] = array_search('宝贝总数量', $t);
             $des['price'] = array_search('买家实际支付金额', $t);
             $des['sys_create_time'] = array_search('物流单号', $t);
-
             $des2 = [];
             $desOrderList = [];
             $info2 = [];
@@ -75,8 +79,6 @@ class ImportOrder
             $res = array();
             foreach ($sheetData AS $key4 => $val3) {
                 if ($key4 > 1) {
-
-
                     $info2['brand'] = $val3[$info['brand']];
                     $info2['shop_name'] = $val3[$info['shop_name']];
                     $info2['order_no'] = $val3[$info['order_no']];
@@ -86,7 +88,20 @@ class ImportOrder
                     $info2['customer'] = $val3[$info['customer']];
                     $info2['addressee'] = $val3[$info['addressee']];
                     $info2['addressee_phone'] = str_replace("'", '', $val3[$info['addressee_phone']]);
-                    $info2['address'] = $val3[$info['address']];
+                    if (isset($val3[$info['address']])) {
+                        $encode = mb_detect_encoding($val3[$info['address']], array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
+                        if ($encode == 'UTF-8') {
+                            $info2['address'] = $val3[$info['address']] ? mb_substr($val3[$info['address']], 0, 100, 'utf-8') : "";
+                            $info2['address'] = $this->remove_emoji($info2['address']);
+                        } else {
+                            file_put_contents("sites2.txt", "$val" . "---" .  $val3[$info['address']], FILE_APPEND);
+                            $info2['address'] = "";
+                        }
+                    } else {
+                        $info2['address'] = "";
+                    }
+                    $info2['address'] = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD",  $info2['address']);
+                    $info2['address'] = str_replace('�', '', $info2['address']) ;
                     $info2['total_price'] = (int)($val3[$info['total_price']] * 100);
                     $info2['total_num'] = $val3[$info['total_num']];
                     $info2['create_time'] = $val3[$info['create_time']];
@@ -99,12 +114,10 @@ class ImportOrder
                     $des2['num'] = $val3[$des['num']];
                     $des2['price'] = (int)($val3[$des['price']] * 100);
                     $des2['sys_create_time'] = date("Y-m-d H:i:s");
-
-
                     //查看有没有重复项
                     if (isset($des2['order_no'])) {
                         if (in_array($des2['order_no'], $res)) {
-                            dump($des2['order_no']);
+                            //dump($des2['order_no']);
                             $desOrderList[] = $des2;
                             unset($info2);  //有：销毁
                         } else {
@@ -116,11 +129,58 @@ class ImportOrder
                 }
 
             }
-            (new WsaleOrderModel())->insertAll($orderList);
-            (new WsaleOrderDetailModel())->insertAll($desOrderList);
-            exit;
+            $orderList11 = array_chunk($orderList, 1000);
+            $desOrderList22 = array_chunk($desOrderList, 1000);
+            foreach ($orderList11 AS $key11 => $val11) {
+                (new WsaleOrderModel())->insertAll($val11);
+            }
+            foreach ($desOrderList22 AS $key22 => $val22) {
+                (new WsaleOrderDetailModel())->insertAll($val22);
+            }
+
         }
 
+    }
+
+
+
+    public function FilterPartialUTF8Char($str)
+
+    {
+        $str = preg_replace("/[\\xC0-\\xDF](?=[\\x00-\\x7F\\xC0-\\xDF\\xE0-\\xEF\\xF0-\\xF7]|$)/", "", $str);
+
+        $str = preg_replace("/[\\xE0-\\xEF][\\x80-\\xBF]{0,1}(?=[\\x00-\\x7F\\xC0-\\xDF\\xE0-\\xEF\\xF0-\\xF7]|$)/", "", $str);
+
+        $str = preg_replace("/[\\xF0-\\xF7][\\x80-\\xBF]{0,2}(?=[\\x00-\\x7F\\xC0-\\xDF\\xE0-\\xEF\\xF0-\\xF7]|$)/", "", $str);
+
+        return $str;
+
+    }
+
+
+    public function remove_emoji($string) {
+
+        // Match Emoticons
+        $regex_emoticons = '/[\x{1F600}-\x{1F64F}]/u';
+        $clear_string = preg_replace($regex_emoticons, '', $string);
+
+        // Match Miscellaneous Symbols and Pictographs
+        $regex_symbols = '/[\x{1F300}-\x{1F5FF}]/u';
+        $clear_string = preg_replace($regex_symbols, '', $clear_string);
+
+        // Match Transport And Map Symbols
+        $regex_transport = '/[\x{1F680}-\x{1F6FF}]/u';
+        $clear_string = preg_replace($regex_transport, '', $clear_string);
+
+        // Match Miscellaneous Symbols
+        $regex_misc = '/[\x{2600}-\x{26FF}]/u';
+        $clear_string = preg_replace($regex_misc, '', $clear_string);
+
+        // Match Dingbats
+        $regex_dingbats = '/[\x{2700}-\x{27BF}]/u';
+        $clear_string = preg_replace($regex_dingbats, '', $clear_string);
+
+        return $clear_string;
     }
 
 
