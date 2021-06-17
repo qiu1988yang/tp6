@@ -18,7 +18,7 @@ class ImportOrder
         foreach ($files as $file) {
             if ($file != '.' && $file != '..') {
                 if (is_dir($path . '/' . $file)) {
-                    scanFile($path . '/' . $file);
+                   $this->scanFile($path . '/' . $file);
                 } else {
                     $result[] = basename($file);
                 }
