@@ -7,7 +7,7 @@ use think\console\Input;
 use think\console\Output;
 use think\facade\Db;
 use app\test\controller\ImportOrder;
-
+use app\test\controller\Kuaidi;
 class WsaleOrder extends Command
 {
     protected function configure()
@@ -19,7 +19,9 @@ class WsaleOrder extends Command
     protected function execute(Input $input, Output $output)
     {
 
-        (new ImportOrder())->index();
+        //(new ImportOrder())->index();
+
+        (new Kuaidi())->index();
 
         $output->writeln('1111111');
     }

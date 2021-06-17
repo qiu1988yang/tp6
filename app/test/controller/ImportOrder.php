@@ -86,20 +86,14 @@ class ImportOrder
                     $info2['order_status'] = $val3[$info['order_status']];
                     $info2['fare_no'] = $val3[$info['fare_no']];
                     $info2['customer'] = $val3[$info['customer']];
-                    $info2['addressee'] = $val3[$info['addressee']];
+                    $info2['addressee']= $val3[$info['addressee']];
+
+                    $info2['addressee'] = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD",  $info2['addressee']);
+                    $info2['addressee'] = str_replace('�', '', $info2['addressee']) ;
+
                     $info2['addressee_phone'] = str_replace("'", '', $val3[$info['addressee_phone']]);
-                    if (isset($val3[$info['address']])) {
-                        $encode = mb_detect_encoding($val3[$info['address']], array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
-                        if ($encode == 'UTF-8') {
-                            $info2['address'] = $val3[$info['address']] ? mb_substr($val3[$info['address']], 0, 100, 'utf-8') : "";
-                            $info2['address'] = $this->remove_emoji($info2['address']);
-                        } else {
-                            file_put_contents("sites2.txt", "$val" . "---" .  $val3[$info['address']], FILE_APPEND);
-                            $info2['address'] = "";
-                        }
-                    } else {
-                        $info2['address'] = "";
-                    }
+
+                    $info2['address']= $val3[$info['address']];
                     $info2['address'] = preg_replace('/[\x{10000}-\x{10FFFF}]/u', "\xEF\xBF\xBD",  $info2['address']);
                     $info2['address'] = str_replace('�', '', $info2['address']) ;
                     $info2['total_price'] = (int)($val3[$info['total_price']] * 100);
